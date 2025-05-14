@@ -79,16 +79,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                // Logo
-                CircleAvatar(
-                  radius: 60,
-                  backgroundColor: AppColors.primary.withAlpha(25),
-                  child: const Text(
-                    'PawPals',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                // Logo with dog image
+                Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 3),
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/dog5.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback if image can't be loaded
+                        return CircleAvatar(
+                          radius: 100,
+                          backgroundColor: AppColors.primary.withAlpha(25),
+                          child: const Text(
+                            'PawPals',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

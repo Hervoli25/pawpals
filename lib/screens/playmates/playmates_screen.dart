@@ -7,6 +7,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
+import 'gallery_screen.dart';
 
 class PlaymatesScreen extends StatefulWidget {
   const PlaymatesScreen({super.key});
@@ -459,7 +460,7 @@ class _PlaydateCard extends StatelessWidget {
                 const SizedBox(height: 8),
               ],
 
-              // Status
+              // Status and action buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -479,6 +480,28 @@ class _PlaydateCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+
+                  // Gallery button
+                  IconButton(
+                    icon: const Icon(
+                      Icons.photo_library,
+                      color: AppColors.primary,
+                    ),
+                    tooltip: 'View Photos',
+                    onPressed: () {
+                      // Open gallery with dog pictures
+                      final dogImages = List.generate(
+                        12,
+                        (index) => 'dog${index + 1}.jpg',
+                      );
+
+                      GalleryLauncher.openGallery(
+                        context,
+                        title: '$dog1Name & $dog2Name Playdate',
+                        images: dogImages,
+                      );
+                    },
                   ),
 
                   // Action buttons based on status

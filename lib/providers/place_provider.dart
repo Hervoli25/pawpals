@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
+import '../services/places_service.dart';
 
 class PlaceProvider extends ChangeNotifier {
+  final PlacesService _placesService = PlacesService();
   List<PlaceModel> _places = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -12,94 +14,61 @@ class PlaceProvider extends ChangeNotifier {
 
   // Get places by category
   List<PlaceModel> getPlacesByCategory(String category) {
-    return _places
-        .where((place) => place.category == category)
-        .toList();
+    return _places.where((place) => place.category == category).toList();
   }
 
-  // Get nearby places (simplified for demo)
-  List<PlaceModel> getNearbyPlaces(double latitude, double longitude, double radiusInKm) {
-    // In a real app, we would calculate distance between coordinates
-    // For demo, we'll just return all places
-    return _places;
+  // Get nearby places
+  Future<List<PlaceModel>> getNearbyPlaces(
+    double latitude,
+    double longitude,
+    double radiusInKm,
+  ) async {
+    try {
+      return await _placesService.getNearbyPlaces(
+        latitude,
+        longitude,
+        radiusInKm,
+      );
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return [];
+    }
   }
 
-  // For demo purposes, we'll use a simple method to load places
-  // In a real app, this would fetch from a database or API
+  // Get nearby dog parks
+  Future<List<PlaceModel>> getNearbyDogParks(
+    double latitude,
+    double longitude,
+    double radiusInKm,
+  ) async {
+    try {
+      return await _placesService.getNearbyDogParks(
+        latitude,
+        longitude,
+        radiusInKm,
+      );
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return [];
+    }
+  }
+
+  // Load places from Firestore
   Future<void> loadPlaces() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      _places = await _placesService.getPlaces();
 
-      // Demo data
-      _places = [
-        PlaceModel(
-          id: 'place1',
-          name: 'Central Park Dog Run',
-          category: 'Park',
-          latitude: 40.7812,
-          longitude: -73.9665,
-          address: 'Central Park, New York, NY',
-          description: 'Large off-leash area for dogs to play',
-          rating: 4.8,
-          amenities: {
-            'water': true,
-            'seating': true,
-            'shade': true,
-            'waste_bags': true,
-          },
-        ),
-        PlaceModel(
-          id: 'place2',
-          name: 'Barking Dog Cafe',
-          category: 'Cafe',
-          latitude: 40.7731,
-          longitude: -73.9545,
-          address: '1678 3rd Ave, New York, NY',
-          description: 'Dog-friendly cafe with outdoor seating',
-          rating: 4.5,
-          amenities: {
-            'water_bowls': true,
-            'dog_treats': true,
-            'outdoor_seating': true,
-          },
-        ),
-        PlaceModel(
-          id: 'place3',
-          name: 'Pet Paradise Hotel',
-          category: 'Hotel',
-          latitude: 40.7589,
-          longitude: -73.9851,
-          address: '123 W 28th St, New York, NY',
-          description: 'Luxury pet-friendly hotel with dog walking services',
-          rating: 4.7,
-          amenities: {
-            'pet_beds': true,
-            'dog_walking': true,
-            'grooming': true,
-            'pet_sitting': true,
-          },
-        ),
-        PlaceModel(
-          id: 'place4',
-          name: 'Doggy Beach',
-          category: 'Beach',
-          latitude: 40.5763,
-          longitude: -73.9943,
-          address: 'Coney Island, Brooklyn, NY',
-          description: 'Dog-friendly beach area (seasonal)',
-          rating: 4.3,
-          amenities: {
-            'off_leash_area': true,
-            'water_access': true,
-            'waste_stations': true,
-          },
-        ),
-      ];
+      // If no places exist in Firestore yet, add some demo data
+      if (_places.isEmpty) {
+        await _addDemoPlaces();
+        _places = await _placesService.getPlaces();
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -110,16 +79,103 @@ class PlaceProvider extends ChangeNotifier {
     }
   }
 
+  // Load places by category
+  Future<void> loadPlacesByCategory(String category) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _places = await _placesService.getPlacesByCategory(category);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Helper method to add demo places if none exist
+  Future<void> _addDemoPlaces() async {
+    final demoPlaces = [
+      PlaceModel(
+        name: 'Central Park Dog Run',
+        category: 'Park',
+        latitude: 40.7812,
+        longitude: -73.9665,
+        address: 'Central Park, New York, NY',
+        description: 'Large off-leash area for dogs to play',
+        rating: 4.8,
+        amenities: {
+          'water': true,
+          'seating': true,
+          'shade': true,
+          'waste_bags': true,
+        },
+      ),
+      PlaceModel(
+        name: 'Barking Dog Cafe',
+        category: 'Cafe',
+        latitude: 40.7731,
+        longitude: -73.9545,
+        address: '1678 3rd Ave, New York, NY',
+        description: 'Dog-friendly cafe with outdoor seating',
+        rating: 4.5,
+        amenities: {
+          'water_bowls': true,
+          'dog_treats': true,
+          'outdoor_seating': true,
+        },
+      ),
+      PlaceModel(
+        name: 'Pet Paradise Hotel',
+        category: 'Hotel',
+        latitude: 40.7589,
+        longitude: -73.9851,
+        address: '123 W 28th St, New York, NY',
+        description: 'Luxury pet-friendly hotel with dog walking services',
+        rating: 4.7,
+        amenities: {
+          'pet_beds': true,
+          'dog_walking': true,
+          'grooming': true,
+          'pet_sitting': true,
+        },
+      ),
+      PlaceModel(
+        name: 'Doggy Beach',
+        category: 'Beach',
+        latitude: 40.5763,
+        longitude: -73.9943,
+        address: 'Coney Island, Brooklyn, NY',
+        description: 'Dog-friendly beach area (seasonal)',
+        rating: 4.3,
+        amenities: {
+          'off_leash_area': true,
+          'water_access': true,
+          'waste_stations': true,
+        },
+      ),
+    ];
+
+    for (final place in demoPlaces) {
+      await _placesService.addPlace(place);
+    }
+  }
+
   Future<bool> addPlace(PlaceModel place) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      // Add place to Firestore
+      final addedPlace = await _placesService.addPlace(place);
 
-      _places.add(place);
+      // Add to local state
+      _places.add(addedPlace);
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -137,21 +193,21 @@ class PlaceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      // Update place in Firestore
+      await _placesService.updatePlace(updatedPlace);
 
+      // Update in local state
       final index = _places.indexWhere((place) => place.id == updatedPlace.id);
       if (index != -1) {
         _places[index] = updatedPlace;
-        _isLoading = false;
-        notifyListeners();
-        return true;
       } else {
-        _errorMessage = 'Place not found';
-        _isLoading = false;
-        notifyListeners();
-        return false;
+        // If not found in local state, add it
+        _places.add(updatedPlace);
       }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
@@ -166,10 +222,12 @@ class PlaceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+      // Delete place from Firestore
+      await _placesService.deletePlace(placeId);
 
+      // Remove from local state
       _places.removeWhere((place) => place.id == placeId);
+
       _isLoading = false;
       notifyListeners();
       return true;

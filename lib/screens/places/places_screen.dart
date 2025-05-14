@@ -5,6 +5,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
+import 'map_view_tab.dart';
 
 class PlacesScreen extends StatefulWidget {
   const PlacesScreen({super.key});
@@ -84,7 +85,7 @@ class _PlacesScreenState extends State<PlacesScreen>
                   _buildListView(),
 
                   // Map View Tab
-                  const _MapViewTab(),
+                  MapViewTab(selectedCategory: _selectedCategory),
                 ],
               ),
       bottomNavigationBar: const PawPalsBottomNavBar(currentIndex: 4),
@@ -640,32 +641,6 @@ class _DetailItem extends StatelessWidget {
                 Text(value),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MapViewTab extends StatelessWidget {
-  const _MapViewTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.map, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Map view will be implemented in a future update',
-            style: TextStyle(color: Colors.grey),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'This will use Google Maps to show dog-friendly places',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],
       ),
